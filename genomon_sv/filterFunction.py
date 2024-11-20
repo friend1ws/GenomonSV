@@ -52,7 +52,7 @@ def genomon_sv_filt_main(output_prefix, args, thread_str = ""):
     validateByRealignment(output_prefix + ".junction.clustered.filt5.bedpe",
                           output_prefix + ".junction.clustered.filt6.bedpe",
                           args.bam_file, args.matched_control_bam, args.reference_genome, args.blat_option,
-                          args.short_tandem_reapeat_thres, args.max_depth, args.search_length, args.search_margin, 
+                          args.short_tandem_reapeat_thres, args.max_read_num, args.search_length, args.search_margin, 
                           args.split_refernece_thres, args.validate_sequence_length, args.blat, args.edlib)
 
     utils.processingMessage("Filtering allele frequencies, Fisher's exact test p-values and # of support read pairs" + thread_str)
@@ -472,7 +472,7 @@ def removeClose(inputFilePath, outputFilePath, close_check_margin, close_check_t
 
 
 def validateByRealignment(inputFilePath, outputFilePath, tumorBamFilePath, normalBamFilePath, reference_genome, blat_option,
-                          short_tandem_reapeat_thres, max_depth, search_length, search_margin, split_refernece_thres, validate_sequence_length, f_blat, f_edlib):
+                          short_tandem_reapeat_thres, max_read_num, search_length, search_margin, split_refernece_thres, validate_sequence_length, f_blat, f_edlib):
 
 
     hIN = open(inputFilePath, 'r')
@@ -494,13 +494,13 @@ def validateByRealignment(inputFilePath, outputFilePath, tumorBamFilePath, norma
         ####################
         # extract short reads from tumor sequence data around the candidate
         fRet = realignmentFunction.extractSVReadPairs(tumorBamFilePath, outputFilePath + ".tmp.tumor.fa", chr1, pos1, dir1, chr2, pos2, dir2, 
-                                                      max_depth, search_length, search_margin, reference_genome)
+                                                      max_read_num, search_length, search_margin, reference_genome)
         if fRet == 1: continue
 
         if normalBamFilePath != "":
             # extract short reads from matched-control sequence data around the candidate
             fRet = realignmentFunction.extractSVReadPairs(normalBamFilePath, outputFilePath + ".tmp.normal.fa", chr1, pos1, dir1, chr2, pos2, dir2,
-                                                          max_depth, search_length, search_margin, reference_genome)
+                                                          max_read_num, search_length, search_margin, reference_genome)
             if fRet == 1: continue
         ####################
         

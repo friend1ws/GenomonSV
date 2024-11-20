@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-import sys, pysam
+import sys, pysam, random
 from . import utils
 
-def extractSVReadPairs(bamFilePath, outputFilePath, juncChr1, juncPos1, juncDir1, juncChr2, juncPos2, juncDir2, max_depth, search_length, search_margin, reference_genome):
+def extractSVReadPairs(bamFilePath, outputFilePath, juncChr1, juncPos1, juncDir1, juncChr2, juncPos2, juncDir2, max_read_num, search_length, search_margin, reference_genome):
 
     """
         read pairs containing break points are extracted. (yshira 2015/04/23)
@@ -23,12 +23,12 @@ def extractSVReadPairs(bamFilePath, outputFilePath, juncChr1, juncPos1, juncDir1
     bamfile = utils.getPysamSamfile(bamFilePath, reference_genome)
 
     # if the #sequence read is over the `maxDepth`, then that key is ignored
-    depthFlag = 0
-    if bamfile.count(juncChr1, max(0,int(juncPos1) - 1), int(juncPos1) + 1) >= max_depth: depthFlag = 1
-    if bamfile.count(juncChr2, max(0,int(juncPos2) - 1), int(juncPos2) + 1) >= max_depth: depthFlag = 1
-    if depthFlag == 1:
-        print("sequence depth exceeds the threshould for: " + ','.join([juncChr1, juncPos1, juncDir1, juncChr2, juncPos2, juncDir2]), file = sys.stderr)
-        return 1 
+    # depthFlag = 0
+    # if bamfile.count(juncChr1, max(0,int(juncPos1) - 1), int(juncPos1) + 1) >= max_depth: depthFlag = 1
+    # if bamfile.count(juncChr2, max(0,int(juncPos2) - 1), int(juncPos2) + 1) >= max_depth: depthFlag = 1
+    # if depthFlag == 1:
+    #     print("sequence depth exceeds the threshould for: " + ','.join([juncChr1, juncPos1, juncDir1, juncChr2, juncPos2, juncDir2]), file = sys.stderr)
+    #     return 1 
 
     hOUT = open(outputFilePath, 'w')
 
@@ -179,17 +179,33 @@ def extractSVReadPairs(bamFilePath, outputFilePath, juncChr1, juncPos1, juncDir1
                 readID2seq2[read.qname] = tempSeq
 
 
-    for readID in readID2seq1:
-        if readID in readID2seq2:
-            print('>' + readID + '/1', file = hOUT) 
-            print(readID2seq1[readID], file = hOUT)
-            print('>' + readID + '/2', file = hOUT)
-            print(readID2seq2[readID], file = hOUT)
+    for readID in fastq_write_subsample_fetch(readID2seq1, readID2seq2, max_read_num):
+        print('>' + readID + '/1', file = hOUT) 
+        print(readID2seq1[readID], file = hOUT)
+        print('>' + readID + '/2', file = hOUT)
+        print(readID2seq2[readID], file = hOUT)
 
     bamfile.close()
     hOUT.close()
 
     return 0
+
+
+def fastq_write_subsample_fetch(readID2seq1, readID2seq2, max_read_num):
+
+    rec = 0
+    for readID in readID2seq1:
+        if readID in readID2seq2:
+            rec = rec + 1
+
+    selected_inds = random.sample(range(rec), min(max_read_num, rec))
+
+    rec2 = 0
+    for readID in readID2seq1:
+        if readID in readID2seq2:
+            if rec2 in selected_inds:
+                yield readID
+            rec2 = rec2 + 1
 
 
 def getRefAltForSV(outputFilePath, juncChr1, juncPos1, juncDir1, juncChr2, juncPos2, juncDir2, juncSeq, reference_genome, split_refernece_thres, validate_sequence_length):

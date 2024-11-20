@@ -176,8 +176,8 @@ def create_parser():
     realignment_condition_group = filt_parser.add_argument_group("realignment_condition",
                                                                  "parameters used in realignment filtering steps in GenomonSV filt command")
 
-    realignment_condition_group.add_argument("--max_depth", type = int, default = 5000,
-                                             help = "Candidates having coverages more than specified value are ignored (default: %(default)s)")
+    realignment_condition_group.add_argument("--max_read_num", type = int, default = 5000,
+                                             help = "when the total read number exceeds max_read_num, then max_read_num reads are randomly selected (default: %(default)s)")
 
     realignment_condition_group.add_argument("--search_length", type = int, default = 1000,
                                              help = "Read pairs within the specified length from the breakpoint will be checked (default: %(default)s)")
